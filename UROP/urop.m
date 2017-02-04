@@ -1,7 +1,3 @@
-cov = {'covSum',{cgi,cpe}}; hyp = [hypgi; hyppe];      % sum
-cov = {@covProd,{cgi,cpe}};   hyp = [hypgi; hyppe];    % product
-% See usageCov.m for list of covariance matrices
-
 %1. Build k (with covSum, covProd) (what about hyps?)
 %   a. Range: [0, a], [0, b] (how to decide?)
 %2. Choose a g1, g2 (smoothing kernels) (hyps?)
@@ -28,8 +24,20 @@ cov = {@covProd,{cgi,cpe}};   hyp = [hypgi; hyppe];    % product
 %      of grid points (?)
 
 % Base kernels
-% covSEiso: k(x,z) = sf^2 * exp(-(x-z)^2/(2*ell^2)) hyp = [log(ell); log(sf)]
-% covLINiso: k(x,z) = xz/ell^2 hyp = [log(ell)] (missing l - see lloyd)
-base_kernels = {'covSEiso', 'covLIN'
+% covSEiso: k(x,z) = sf^2 * exp(-(x-z)^2/(2*ell^2))                         hyp = [log(ell); log(sf)]
+% covLINscaleshift: k(x,z) = xz/ell^2                                       hyp = [log(ell); shift] 
+% covPeriodic: k(x,z) = sf^2 * exp( -2*sin^2( pi*(x-z)/p )/ell^2 )          hyp = [log(ell); log(p) ; log(sf)]
+% covConst: k(x,z) = sf^2                                                   hyp = [log(sf)]
+% covPRiso:  k(x,z) = sf^2 * [1 + (x-z)^2/(2*alpha*ell^2)]^(-alpha)         hyp = [log(ell), log(sf), log(alpha)]
+% covWhiteNoise?
+base_kernels = {'covSEiso', 'covLINscaleshift', 'covPeriodic', 'covConst', 'covRQiso'}
+
 % Sample k
-  k = {'covSum', {'covLIN', 'covPER'}}
+k = {'covSum', {'covLIN', 'covPER'}}
+% sample g1, g2
+std1 = 1;
+std2 = 1;
+g2offset = 5;
+g1 = @(x) gauss(x, std1);
+g2 = @(x) gauss(x, std2, g2offset); 
+
