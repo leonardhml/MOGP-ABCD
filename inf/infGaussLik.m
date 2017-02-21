@@ -18,7 +18,7 @@ end
  
 [n, D] = size(x);
 [m,dm] = feval(mean{:}, hyp.mean, x);           % evaluate mean vector and deriv
-sn2 = exp(2*hyp.lik); W = ones(n,1)/sn2;            % noise variance of likGauss
+sn2 = exp(2*hyp.lik); W = ones(n,1)/sn2;            % noise variance of likGauss (sn2 = 1, W = ones(n,1))
 K = apx(hyp,cov,x,opt);                        % set up covariance approximation
 [ldB2,solveKiW,dW,dhyp,post.L] = K.fun(W); % obtain functionality depending on W
 
@@ -26,7 +26,7 @@ alpha = solveKiW(y-m);
 post.alpha = K.P(alpha);                       % return the posterior parameters
 post.sW = sqrt(W);                              % sqrt of noise precision vector
 if nargout>1                               % do we want the marginal likelihood?
-  nlZ = (y-m)'*alpha/2 + ldB2 + n*log(2*pi*sn2)/2;    % -log marginal likelihood
+  nlZ = (y-m)'*alpha/2 + ldB2 + n*log(2*pi*sn2)/2;    % -log marginal likelihood (In RW: treat sn2 = 1)
   if nargout>2                                         % do we want derivatives?
     dnlZ = dhyp(alpha); dnlZ.mean = -dm(alpha);
     dnlZ.lik = -sn2*(alpha'*alpha) - 2*sum(dW)/sn2 + n;

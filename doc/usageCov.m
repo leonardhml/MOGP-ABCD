@@ -71,6 +71,6 @@ feval(cov{:})
 
 % 3) evaluate the function on x and xs to get cross-terms
 % [kss,dkss] = feval(cov{:},hyp,xs,'diag')
-% [Ks, dKs ]  = feval(cov{:},hyp,x,xs)
+[Ks, dKs ]  = feval(cov{:},hyp,x,xs)
 % 
 

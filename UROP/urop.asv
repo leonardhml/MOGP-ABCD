@@ -1,39 +1,86 @@
-%1. Build k (with covSum, covProd) (what about hyps?)
-%   a. Range: [0, a], [0, b] (how to decide?)
+%1. Build k (with covSum, covProd)
+%   a. Range: [0, a]^2 where a is the normalised range of input points
 %2. Choose a g1, g2 (smoothing kernels) (hyps?)
-%   a. Range: [0, a], [0, b] (how to decide?)
-%3. Build X-cov via 2d convolution
+%   a. Range: [0, a] for both
+%2a. Hyperparameter optimisation: Apply BO algorithm, sampling from
+%    (assumed) hyperparameter priors
+%    For smoothing kernels, signal variance can be negative
+%    Length scale depends on normalised input (degree of
+%    interconnectedness) e.g. 1/n, 2/n,...
+%3. Build X-cov via summation approximation
 %   a. Finding C_ij(x,y) = int(g_i(x-z)g_j(y-z')k(z,z')dzdz'
-%                         = conv2(G(x,y),k)
+%                        = conv2(G(x,y),k)
+%                        = h_xh_y/9 sum(1...N_x)sum(1...N_y)c_ijgi(x-xi')gj(y-y_j')k(x_i',y_j')
 %   b. For 2 outputs, need to find  C_11, C_12, C_21, C_22
 %   c. Take note: For discretisation,
-%       1. Get samples in ranges N_x = [1,N = 2^n - 1], N_y = [1, M = 2^m - 1] (How do
-%          we decide?)
-%          Introduce N+1th and M+1th point such that k(x_N+1, y_M+1) = 0
+%       1. Get samples in ranges N_x = [1,N = 2^n - 1], N_y = [1, M = 2^m - 1]
+%          Choices of n and m will decide the accuracy of the model
 %       2. Transform k to kbar: Introduce constant c_ij (based on which
 %          sample of points x_i, y_j)
-%       3. Find grid sizes h_x and h_x'
-%       4. Discrete convolution summation is then:
-%          I(x_i,y_j) = (h_x)(h_x')/9 * sumi'(1...N+1)sumj'(1...M+1) g1(x_i - x_i')g2(y_i -y_i')kbar(x_i',y_i')
-%       5. Replacement with cyclic summation: i = [1, 2N_x+2], j = [1, 2N_y+2]
-%       6. Apply FFT
-%          a. The resulting matrix must be restricted to the domain [1,N+1]
-%             and [1,M+1]
+%       3. Find grid sizes h_x and h_y
 %4. Use GP and X-cov to predict
-%   a. Prediction points must be within sample range (?) and must be part
-%      of grid points (?)
+
+%%%
+% Sample training and test inputs
+%%%
+
+x1 = rand(100,1);                             % 10 training inputs
+y1 = sin(10*x1) + 0.1*gpml_randn(0.9, 100, 1);  % 10 noisy training targets
+x2 = rand(100,1);                             % 10 training inputs
+y2 = sin(9*x2) + 0.1*gpml_randn(0.9, 100, 1);  % 10 noisy training targets
+xs1 = linspace(0, 1, 20)';                  % 5 test inputs 
+ys1 = sin(10*xs1) + 0.1*gpml_randn(0.9,20,1);
+
+X.x1 = x1;
+X.x2 = x2;
+Y.y1 = y1;
+Y.y2 = y2;
 
 % Base kernels
-% covSEiso: k(x,z) = sf^2 * exp(-(x-z)^2/(2*ell^2))                         hyp = [log(ell); log(sf)]
-% covLINscaleshift: k(x,z) = xz/ell^2                                       hyp = [log(ell); shift] 
-% covPeriodic: k(x,z) = sf^2 * exp( -2*sin^2( pi*(x-z)/p )/ell^2 )          hyp = [log(ell); log(p) ; log(sf)]
-% covConst: k(x,z) = sf^2                                                   hyp = [log(sf)]
-% covPRiso:  k(x,z) = sf^2 * [1 + (x-z)^2/(2*alpha*ell^2)]^(-alpha)         hyp = [log(ell), log(sf), log(alpha)]
-% covWhiteNoise?
-base_kernels = {'covSEiso', 'covLINscaleshift', 'covPeriodic', 'covConst', 'covRQiso'}
+% See Prior.m for more details
+kernel_set = {'covSEiso', 'covLINscaleshift', 'covPeriodic', 'cpvRQiso'} ;
+base_kernels = {'SE', 'LIN', 'PER', 'RQ'}; 
 
-% Sample k
-k = {'covSum', {'covLIN', 'covPER'}}
+% A sample k
+k.kernel = {'covProd', {'covSEiso', 'covPeriodic'}} ;
+k.components = {'SE'; 'PER'};
+hyp.cov = [0.6345;2.2360;2.0617 ;   0.2464 ;   1.5376  ];
+%k = {'covSEiso'};
+%hyp.cov = [0.4;0.3];
+
+% Independent noise hyperparameter on a log scale for two outputs
+hyp.noise = [ -0.8191   -0.2001];
 % sample g1, g2
-g1 = @(x) gauss(x, 1);
+std1 = 0.1;
+std2 = 0.1;
+g2offset = 0;
+g1 = @(x) gauss(x, std1);
+g2 = @(x) gauss(x, std2, g2offset);
 
+n = 6;
+a = -2;
+b = 2;
+% 
+% c = covFunc([0,0.1,0.2,0.3,0.4],[0,0.1,0.2,0.3,0.4]);
+
+% Build cross-covariance matrix C
+% cov_options is a struct that define the options for the kernel,
+% such as the latent kernel k, hyperparameters, smoothing kernels, and
+% sampling parameters
+cov_options.k = k;
+cov_options.g1 = g1;
+cov_options.g2 = g2;
+cov_options.n = n;
+cov_options.a = a;
+cov_options.b = b;
+model = MOGP(cov_options);
+
+[models, logP] = model.mcmcPosterior(X,Y);
+% Find MAP estimate for hyp
+model.fit(X,Y,hyp);
+%[mu, s2] = model.predict(xs1, 1);
+
+ 
+f = [mu+2*sqrt(diag(s2)); flipdim(mu-2*sqrt(diag(s2)),1)];
+fill([xs1; flipdim(xs1,1)], f, [7 7 7]/8)
+hold on; plot(xs1, mu, 'b'); plot(x1, y1, 'r+'); plot (xs1, ys1, 'gx')

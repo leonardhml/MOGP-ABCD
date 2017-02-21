@@ -109,7 +109,8 @@ try                                                  % call the inference method
     end
   else
     if nargout<=1
-      [post nlZ] = feval(inf{:}, hyp, mean, cov, lik, x, y); dnlZ = {};
+      [post nlZ] = feval(inf{:}, hyp, mean, cov, lik, x, y); dnlZ = {}; % post is a struct of posterior distribution
+        % See help infmethods and infGaussLik.m
     else
       [post nlZ dnlZ] = feval(inf{:}, hyp, mean, cov, lik, x, y);
     end
