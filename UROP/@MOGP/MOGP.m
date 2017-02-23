@@ -49,7 +49,7 @@ classdef MOGP < handle
         % assumes that the posterior is a Gaussian distribution, so the MAP
         % is simply the mean of each hyperparameter
         function [hyp] = optimise(obj, X, Y)
-            [models, ~] = obj.mcmcPosterior(X,Y);
+            [models, unused] = obj.mcmcPosterior(X,Y);
             hyp = mean(models(:,:), 2);
         end
         
