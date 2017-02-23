@@ -55,9 +55,10 @@ h = (b-a)/(n_samples-1);
 samples = [a:h:b]';
     
     % Function to build the entire covariance matrix between x and y
+    % hyp is a struct containing cov, smoothing and noise hyperparameters
     function [cov] = evalCov(k, hyp, g1, g2, x, y)
         % Build k
-        K = feval(k{:}, hyp, samples);
+        K = feval(k{:}, hyp.cov, samples);
 
         % Evaluate covariance at two points
         function [v] = eval(x,y)  
@@ -68,13 +69,6 @@ samples = [a:h:b]';
             G2 = g2(ys - samples);
 
             v = (h^2 / 9) * G1' * (K.*C) * G2;
-%             v = 0;
-%             for i=[1:1:n_samples]
-%                 for j = [1:1:n_samples]
-%                     v = v + G1(i)*G2(j)*C(i,j)*K(i,j);
-%                 end
-%             end
-%             v = (h^2/9) * v;
         end
 
         % Compute covariance matrix

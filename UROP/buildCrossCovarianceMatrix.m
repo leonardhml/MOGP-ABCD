@@ -10,6 +10,8 @@ function [ Cov, cov_eval] = buildCrossCovarianceMatrix(X,Y,cov_options)
 % cov_options is a struct containing the options for the covariance matrix.
 %   k:      The kernel of the latent process
 %   hyp:    hyp.cov is a vector of hyperparameters for k.
+%           hyp.smoothing is a vector of hyperparameters for smoothing
+%           kernels.
 %           hyp.noise is the hyperparameters for the independent noise
 %           term.
 %   g1, g2:  The smoothing kernels applied for output 1 and 2 respectively
@@ -31,10 +33,10 @@ function [ Cov, cov_eval] = buildCrossCovarianceMatrix(X,Y,cov_options)
     g2 = cov_options.g2;
     x1 = X.x1;
     x2 = X.x2;
-    C11 = cov_eval(k, hyp.cov, g1, g1, x1, x1) + (exp(2*hyp.noise(1)) * eye(length(x1)));
-    C12 = cov_eval(k, hyp.cov, g1, g2, x1, x2);
-    C21 = cov_eval(k, hyp.cov, g2, g1, x2, x1);
-    C22 = cov_eval(k, hyp.cov, g2, g2, x2, x2) + (exp(2*hyp.noise(2)) * eye(length(x2)));
+    C11 = cov_eval(k, hyp, g1, g1, x1, x1) + (exp(2*hyp.noise(1)) * eye(length(x1)));
+    C12 = cov_eval(k, hyp, g1, g2, x1, x2);
+    C21 = cov_eval(k, hyp, g2, g1, x2, x1);
+    C22 = cov_eval(k, hyp, g2, g2, x2, x2) + (exp(2*hyp.noise(2)) * eye(length(x2)));
     C = [C11 C12; C21 C22];
     Cov.C = C;
     Cov.C11 = C11;

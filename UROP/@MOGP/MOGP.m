@@ -44,13 +44,22 @@ classdef MOGP < handle
             obj.g2 = cov_options.g2;
         end
         
-        % hyp should be a struct containing two fields: cov and noise
+        % Optimise for the hyperparameters
+        % Finds the MAP estimate of the hyperparameter posteriors. This
+        % assumes that the posterior is a Gaussian distribution, so the MAP
+        % is simply the mean of each hyperparameter
+        function [hyp] = optimise(obj, X, Y)
+            [models, ~] = obj.mcmcPosterior(X,Y);
+            hyp = mean(models(:,:), 2);
+        end
+        
+        % hyp should be a struct containing three fields: cov, smoothing and noise
         function fit(obj, X, Y, hyp)
             % Set up options
             cov_options.k = obj.k;
             cov_options.hyp = hyp;
-            cov_options.g1 = obj.g1;
-            cov_options.g2 = obj.g2;
+            cov_options.g1 = @(x) obj.g1(x, hyp.smoothing(1));
+            cov_options.g2 = @(x) obj.g2(x, hyp.smoothing(2), hyp.smoothing(3));
             cov_options.n = obj.n;
             cov_options.a = obj.a;
             cov_options.b = obj.b;
@@ -65,6 +74,7 @@ classdef MOGP < handle
             if p == 0                   % If PD
                 alpha = L\(L'\[Y.y1;Y.y2]);
             else                        % Not PD
+                disp('Warning: Cross covariance matrix is not PD');
                 alpha = Cov.C\[Y.y1;Y.y2];
             end
             obj.alpha = alpha;
@@ -75,14 +85,6 @@ classdef MOGP < handle
             obj.cov_eval = cov_eval;
         end
         
-        % Optimise for the hyperparameters
-        % Finds the MAP estimate of the hyperparameter posteriors. This
-        % assumes that the posterior is a Gaussian distribution, so the MAP
-        % is simplly th
-        function [hyp] = optimise(obj, X, Y)
-            [models, ~] = obj.mcmcPosterior(X,Y);
-            hyp = mean(models(:,:), 2);
-        end
         function [ymeanpred, yvarpred] = predict(obj, xpred, output)
             if output == 1
                 g = obj.g1;
@@ -91,9 +93,9 @@ classdef MOGP < handle
             else
                 error('Model currently only supports two outputs');
             end
-            k1 = obj.cov_eval(obj.k, obj.hyp.cov, g, obj.g1, xpred, obj.X.x1);     % Covariance between test points and training points of output 1
-            k2 = obj.cov_eval(obj.k, obj.hyp.cov, g, obj.g2, xpred, obj.X.x2);     % Covariance between test points and training points of output 2
-            kstar = obj.cov_eval(obj.k, obj.hyp.cov, g, g, xpred, xpred);
+            k1 = obj.cov_eval(obj.k, obj.hyp, g, obj.g1, xpred, obj.X.x1);     % Covariance between test points and training points of output 1
+            k2 = obj.cov_eval(obj.k, obj.hyp, g, obj.g2, xpred, obj.X.x2);     % Covariance between test points and training points of output 2
+            kstar = obj.cov_eval(obj.k, obj.hyp, g, g, xpred, xpred);
             ks = [k1 k2]';
 
             ymeanpred = ks'*obj.alpha;
@@ -102,10 +104,21 @@ classdef MOGP < handle
                 v = L'\ks;
                 yvarpred = kstar - v'*v;
             else                                        % Not PD
-                yvarpred = kstar - ks*(obj.C\ks');
+                yvarpred = kstar - ks*(obj.Cov.C\ks');
             end
         end
         
+        % Calculate the log model evidence, approximated using the Bayesian
+        % Information Criterion (BIC)
+        % Requires an optimised set of hyperparameters, usually via MAP
+        % estimation (see optimise function)
+        function [bic] = modelEvidence(obj)
+           bic = -2*obj.logLikelihood(obj.hyp, obj.X, obj.Y) + length(obj.hyp)*log(length(obj.X.x1)+length(obj.X.x2));
+        end
+        
+        % Samples from the posterior using MCMC
+        % Apply models(:,:) to collate into h*S matrix where h is the
+        % number of hyperparameters and S is the number of samples
         function [models, logP] = mcmcPosterior(obj,X,Y)
             log_like = @(hyp) obj.logLikelihood(hyp,X,Y);
             prior = Prior(obj.k_components);
@@ -115,9 +128,8 @@ classdef MOGP < handle
             prior_mu = prior.mu;
             prior_sigma = prior.Sigma;
             minit = mvnrnd(prior_mu', prior_sigma, 2*(length(prior_mu)));
-            [models,logP] = gwmcmc(minit', {log_prior log_like}, 5000);
+            [models,logP] = gwmcmc(minit', {log_prior log_like}, 15000, 'BurnIn', 0.2);
             
-            % Bin results?
         end
         
         function [ll] = logLikelihood(obj, hyp, X, Y)
@@ -125,13 +137,15 @@ classdef MOGP < handle
                 hyp_struct = hyp;
             else
                 % hyp is a vector passed in for MAP calculation
-                hyp_struct.cov = hyp(1:end-2);
+                hyp_struct.cov = hyp(1:end-5);
+                hyp_struct.smoothing = hyp(end-4:end-2);
                 hyp_struct.noise = hyp(end-1:end);
             end
             obj.fit(X,Y, hyp_struct);
             y = [Y.y1; Y.y2];
             ll = -((1/2)*y'*obj.alpha) - ((1/2)*log(det(obj.Cov.C))) - ((1/2)*log(2*pi)*length(y));
         end
+        
     end
     
 end

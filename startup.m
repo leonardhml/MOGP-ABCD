@@ -20,5 +20,7 @@ addpath([mydir,'lik'])
 addpath([mydir,'mean'])
 addpath([mydir,'prior'])
 addpath([mydir,'util'])
+addpath([mydir,'UROP'])
+addpath([mydir,'gwmcmc-master'])
 
 clear me mydir
