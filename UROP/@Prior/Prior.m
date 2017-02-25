@@ -36,12 +36,12 @@ classdef Prior < handle
                 mu = [mu; mu_new];
                 Sigma_diag = [Sigma_diag; var_new]; 
             end
-            
-            if addSmoothing == 1
-                [mu_new, var_new] = BaseKernels.getPriorFor('smoothing');
-                mu = [mu; mu_new];
-                Sigma_diag = [Sigma_diag; var_new]; 
-            end
+%             
+%             if addSmoothing == 1
+%                 [mu_new, var_new] = BaseKernels.getPriorFor('smoothing');
+%                 mu = [mu; mu_new];
+%                 Sigma_diag = [Sigma_diag; var_new]; 
+%             end
             
             obj.mu = mu;
             obj.Sigma = diag(Sigma_diag);

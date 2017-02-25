@@ -41,15 +41,12 @@ kernel_set = {'covSEiso', 'covLINscaleshift', 'covPeriodic', 'covRQiso'} ;
 base_kernels = {'SE', 'LIN', 'PER', 'RQ'}; 
 
 % A sample k
-k.kernel = {'covProd', {'covSEiso', {'covProd', {'covSEiso', 'covPeriodic'}}}} ;
+k.kernel = {'covProd', {'covSEiso', 'covPeriodic'}} ;
 k.components = {'SE','SE', 'PER'};
 %k = {'covSEiso'};
 %hyp.cov = [0.4;0.3];
 
 % sample g1, g2
-std1 = 0.1;
-std2 = 0.1;
-g2offset = 0;
 g1 = @(x, std1) gauss(x, std1);
 g2 = @(x, std2, g2offset) gauss(x, std2, g2offset);
 
@@ -71,11 +68,11 @@ model = MOGP(cov_options);
 % Find MAP estimate for hyp
 % Posterior over hyp is a Gaussian distribution
 hyp_opt = model.optimise(X,Y);
-hyp.cov = hyp_opt(1:end-5);
-hyp.smoothing = hyp_opt(end-4:end-2);
+hyp.cov = hyp_opt(1:end-2);
+% hyp.smoothing = hyp_opt(end-4:end-2);
 hyp.noise = hyp_opt(end-1:end);
 % hyp.cov = [-0.1; -0.1;-0.934652;0.405701;2.122141;1.267261;0.664246];
-% hyp.smoothing = [0.1;0.1;0];
+hyp.smoothing = [0.1;0.1;0];
 % hyp.noise = [ -0.1;-0.1];
 
 % Fit and predict

@@ -144,8 +144,8 @@ classdef MOGP < handle
                 hyp_struct = hyp;
             else
                 % hyp is a vector passed in for MAP calculation
-                hyp_struct.cov = hyp(1:end-5);
-                hyp_struct.smoothing = hyp(end-4:end-2);
+                hyp_struct.cov = hyp(1:end-2);
+                hyp_struct.smoothing = [0.1;0.1;0];
                 hyp_struct.noise = hyp(end-1:end);
             end
             obj.fit(X,Y, hyp_struct);
