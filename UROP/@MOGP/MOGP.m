@@ -51,6 +51,8 @@ classdef MOGP < handle
         function [hyp] = optimise(obj, X, Y)
             [models, ~] = obj.mcmcPosterior(X,Y);
             hyp = mean(models(:,:), 2);
+%             [~,w] = size(models(:,:));
+%             hyp = models(:, ceil(rand * w));
         end
         
         % hyp should be a struct containing three fields: cov, smoothing and noise
@@ -133,7 +135,7 @@ classdef MOGP < handle
             prior_mu = prior.mu;
             prior_sigma = prior.Sigma;
             minit = mvnrnd(prior_mu', prior_sigma, 2*(length(prior_mu)));
-            [models,logP] = gwmcmc(minit', {log_prior log_like}, 150000, 'BurnIn', 0.2);
+            [models,logP] = gwmcmc(minit', {log_prior log_like}, 15000, 'BurnIn', 0.2);
             
         end
         

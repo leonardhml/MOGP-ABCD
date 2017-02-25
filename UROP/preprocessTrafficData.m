@@ -20,9 +20,9 @@ for i = 1:resolution:length(raw)
 end
 
 % Normalise output
-
-normcols = normc(output(:, 2:end));
-output = [output(:,1) normcols];
+output = normc(output);
+% Or standardise?
+output = zscore(output); 
 
 end
 
