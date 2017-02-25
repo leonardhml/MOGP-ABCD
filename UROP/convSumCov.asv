@@ -53,37 +53,33 @@ C(n_samples,n_samples) = 1;
 
 h = (b-a)/(n_samples-1);
 samples = [a:h:b]';
-
+    
     % Function to build the entire covariance matrix between x and y
     % hyp is a struct containing cov, smoothing and noise hyperparameters
     function [cov] = evalCov(k, hyp, g1, g2, x, y)
         % Build k
         K = feval(k{:}, hyp.cov, samples);
 
-%         % Evaluate covariance at two points
-%         function [v] = eval(x,y)  
-%             % Build g's
-%             xs = ones(n_samples, 1) * x;
-%             ys = ones(n_samples, 1) * y;
-%             G1 = g1(xs - samples);
-%             G2 = g2(ys - samples);
-% 
-%             v = (h^2 / 9) * G1' * (K.*C) * G2;
-%         end
-% 
-%         % Compute covariance matrix
-%         cov = ones(length(x), length(y));
-%         for io=[1:1:length(x)]
-%             for jo=[1:1:length(y)]
-%                 cov(io,jo) = eval(x(io),y(jo));
-%             end
-%         end
+        % Evaluate covariance at two points
+        function [v] = eval(x,y)  
+            % Build g's
+            xs = ones(n_samples, 1) * x;
+            ys = ones(n_samples, 1) * y;
+            G1 = g1(xs - samples);
+            G2 = g2(ys - samples);
+
+            v = (h^2 / 9) * G1' * (K.*C) * G2;
+        end
+
+        % Compute covariance matrix
+        cov = ones(length(x), length(y));
+        for io=[1:1:length(x)]
+            for jo=[1:1:length(y)]
+                cov(io,jo) = eval(x(io),y(jo));
+            end
+        end
         
-        xs = repmat(x, 1, n_samples) - repmat(samples', length(x), 1);
-        ys = repmat(y, 1, n_samples) - repmat(samples', length(y), 1);
-        G1 = g1(xs);
-        G2 = g2(ys);
-        cov = (h^2 / 9).* G1 * (K.*C) * G2';
+        xs = repmat(x, 1, n_samples);
     end
 
 c = @evalCov;

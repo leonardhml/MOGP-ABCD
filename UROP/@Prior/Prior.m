@@ -48,7 +48,7 @@ classdef Prior < handle
         end
         
         function [lp] = logPrior(obj, hyp)
-            lp = -(1/2)*(hyp - obj.mu)'*inv(obj.Sigma)*(hyp - obj.mu) - (1/2)*log(det(obj.Sigma)) - (length(obj.mu)/2)*log(2*pi);
+            lp = -(1/2)*(hyp - obj.mu)'*((obj.Sigma)\(hyp - obj.mu)) - (1/2)*log(det(obj.Sigma)) - (length(obj.mu)/2)*log(2*pi);
         end
     end
 end

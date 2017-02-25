@@ -22,5 +22,6 @@ addpath([mydir,'prior'])
 addpath([mydir,'util'])
 addpath([mydir,'UROP'])
 addpath([mydir,'gwmcmc-master'])
+addpath([mydir,'data'])
 
 clear me mydir

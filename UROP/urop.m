@@ -70,13 +70,13 @@ model = MOGP(cov_options);
 
 % Find MAP estimate for hyp
 % Posterior over hyp is a Gaussian distribution
-% hyp_opt = model.optimise(X,Y);
-% hyp.cov = hyp_opt(1:end-5);
-% hyp.smoothing = hyp_opt(end-4:end-2);
-% hyp.noise = hyp_opt(end-1:end);
-hyp.cov = [-0.1; -0.1;-0.934652;0.405701;2.122141;1.267261;0.664246];
-hyp.smoothing = [0.1;0.1;0];
-hyp.noise = [ -0.1;-0.1];
+hyp_opt = model.optimise(X,Y);
+hyp.cov = hyp_opt(1:end-5);
+hyp.smoothing = hyp_opt(end-4:end-2);
+hyp.noise = hyp_opt(end-1:end);
+% hyp.cov = [-0.1; -0.1;-0.934652;0.405701;2.122141;1.267261;0.664246];
+% hyp.smoothing = [0.1;0.1;0];
+% hyp.noise = [ -0.1;-0.1];
 
 % Fit and predict
 model.fit(X,Y,hyp);

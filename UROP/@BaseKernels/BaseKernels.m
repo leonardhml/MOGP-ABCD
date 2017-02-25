@@ -23,10 +23,10 @@ classdef BaseKernels
 
         hyp_covSEiso = struct('mu', [0.1; 0.4], 'var', [0.7^2; 0.7^2]);
         hyp_covPeriodic = struct('mu', [2; 0.1 + log(pi); 0.4], 'var', [0.7^2; 0.7^2; 0.7^2]);
-        hyp_covLin = struct('mu', [-0.8; 0], 'var',  [0.7^2; 2^2]);
+        hyp_covLin = struct('mu', [0.1; 0], 'var',  [0.7^2; 2^2]);
         hyp_covRQiso = struct('mu', [0.1; 0.4; 0.05], 'var', [0.7^2; 0.7^2; 0.7^2]);
-        hyp_noise = struct('mu', [-0.1; -0.1], 'var', [0.3^2; 0.3^2]);
-        hyp_smoothing = struct('mu', [0.1; 0.1; 0], 'var', [0.1; 0.1; 0.5^2]);
+        hyp_noise = struct('mu', [0.1; 0.1], 'var', [1^2; 1^2]);
+        hyp_smoothing = struct('mu', [0.1; 0.1; 0], 'var', [0.1; 0.1; 0.5]);
     end
     
     methods (Static)

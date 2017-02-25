@@ -8,7 +8,7 @@ function [y] = gauss(x,std,offset)
     end
     
     if nargin < 3
-        offset = zeros(length(x), 1);
+        offset = zeros(size(x));
     end
     x = x - offset;
     y = exp(-x.^2/(2*std^2)) / (std*sqrt(2*pi));

@@ -86,15 +86,20 @@ classdef MOGP < handle
         end
         
         function [ymeanpred, yvarpred] = predict(obj, xpred, output)
+            g_hyp1 = obj.hyp.smoothing(1);
+            g_hyp2 = obj.hyp.smoothing(2);
+            g_hyp3 = obj.hyp.smoothing(3);
+            g1 = @(x) obj.g1(x, g_hyp1);
+            g2 = @(x) obj.g2(x, g_hyp2, g_hyp3);
             if output == 1
-                g = obj.g1;
+                g = g1;
             elseif output == 2
-                g = obj.g2;
+                g = g2;
             else
                 error('Model currently only supports two outputs');
             end
-            k1 = obj.cov_eval(obj.k, obj.hyp, g, obj.g1, xpred, obj.X.x1);     % Covariance between test points and training points of output 1
-            k2 = obj.cov_eval(obj.k, obj.hyp, g, obj.g2, xpred, obj.X.x2);     % Covariance between test points and training points of output 2
+            k1 = obj.cov_eval(obj.k, obj.hyp, g, g1, xpred, obj.X.x1);     % Covariance between test points and training points of output 1
+            k2 = obj.cov_eval(obj.k, obj.hyp, g, g2, xpred, obj.X.x2);     % Covariance between test points and training points of output 2
             kstar = obj.cov_eval(obj.k, obj.hyp, g, g, xpred, xpred);
             ks = [k1 k2]';
 
@@ -128,7 +133,7 @@ classdef MOGP < handle
             prior_mu = prior.mu;
             prior_sigma = prior.Sigma;
             minit = mvnrnd(prior_mu', prior_sigma, 2*(length(prior_mu)));
-            [models,logP] = gwmcmc(minit', {log_prior log_like}, 15000, 'BurnIn', 0.2);
+            [models,logP] = gwmcmc(minit', {log_prior log_like}, 150000, 'BurnIn', 0.2);
             
         end
         
