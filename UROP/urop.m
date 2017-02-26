@@ -42,17 +42,17 @@ base_kernels = {'SE', 'LIN', 'PER', 'RQ'};
 
 % A sample k
 k.kernel = {'covProd', {'covSEiso', 'covPeriodic'}} ;
-k.components = {'SE','SE', 'PER'};
+k.components = {'SE', 'PER'};
 %k = {'covSEiso'};
 %hyp.cov = [0.4;0.3];
 
 % sample g1, g2
 g1 = @(x, std1) gauss(x, std1);
-g2 = @(x, std2, g2offset) gauss(x, std2, g2offset);
+g2 = @(x, std2) gauss(x, std2);
 
 n = 6;
-a = -1.5;
-b = 1.5;
+a = 0;
+b = 1;
 
 % cov_options is a struct that define the options for the kernel,
 % such as the latent kernel k, hyperparameters, smoothing kernels, and
