@@ -51,8 +51,8 @@ g1 = @(x, std1) gauss(x, std1);
 g2 = @(x, std2, g2offset) gauss(x, std2, g2offset);
 
 n = 6;
-a = -2;
-b = 2;
+a = -1.5;
+b = 1.5;
 
 % cov_options is a struct that define the options for the kernel,
 % such as the latent kernel k, hyperparameters, smoothing kernels, and
