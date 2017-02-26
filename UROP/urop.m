@@ -80,6 +80,11 @@ model.fit(X,Y,hyp);
 [mu, s2] = model.predict(xs1, 1);
 
 % Visualise
-f = [mu+2*sqrt(diag(s2)); flipdim(mu-2*sqrt(diag(s2)),1)];
-fill([xs1; flipdim(xs1,1)], f, [7 7 7]/8)
-hold on; plot(xs1, mu, 'b'); plot(x1, y1, 'r+'); plot (xs1, ys1, 'gx')
+% f = [mu+2*sqrt(diag(s2)); flipdim(mu-2*sqrt(diag(s2)),1)];
+% fill([xs1; flipdim(xs1,1)], f, [7 7 7]/8)
+% hold on; plot(xs1, mu, 'b'); plot(x1, y1, 'r+'); plot (xs1, ys1, 'gx')
+
+fileID = fopen('hyp.txt','a');
+fprintf(fileID,'%f\n', hyp_opt);
+fprintf(fileID,'\n');
+fclose(fileID);
