@@ -29,8 +29,10 @@ function [ Cov, cov_eval] = buildCrossCovarianceMatrix(X,Y,cov_options)
     % TODO: Add independent Gaussian term
     k = cov_options.k;
     hyp = cov_options.hyp;
-    g1 = cov_options.g1;
-    g2 = cov_options.g2;
+    g1.g = cov_options.g1;
+    g1.hyp = cov_options.hyp.smoothing(1);
+    g2.g = cov_options.g2;
+    g2.hyp = cov_options.hyp.smoothing(2);
     x1 = X.x1;
     x2 = X.x2;
     C11 = cov_eval(k, hyp, g1, g1, x1, x1) + (exp(2*hyp.noise(1)) * eye(length(x1)));

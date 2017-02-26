@@ -60,8 +60,8 @@ classdef MOGP < handle
             % Set up options
             cov_options.k = obj.k;
             cov_options.hyp = hyp;
-            cov_options.g1 = @(x) obj.g1(x, hyp.smoothing(1));
-            cov_options.g2 = @(x) obj.g2(x, hyp.smoothing(2), hyp.smoothing(3));
+            cov_options.g1 = obj.g1;
+            cov_options.g2 = obj.g2;
             cov_options.n = obj.n;
             cov_options.a = obj.a;
             cov_options.b = obj.b;
@@ -88,11 +88,11 @@ classdef MOGP < handle
         end
         
         function [ymeanpred, yvarpred] = predict(obj, xpred, output)
-            g_hyp1 = obj.hyp.smoothing(1);
-            g_hyp2 = obj.hyp.smoothing(2);
-            g_hyp3 = obj.hyp.smoothing(3);
-            g1 = @(x) obj.g1(x, g_hyp1);
-            g2 = @(x) obj.g2(x, g_hyp2, g_hyp3);
+            g1.g = obj.g1;
+            g1.hyp = obj.hyp.smoothing(1);
+            g2.g = obj.g2;
+            g2.hyp = obj.hyp.smoothing(2);
+            
             if output == 1
                 g = g1;
             elseif output == 2
@@ -144,8 +144,8 @@ classdef MOGP < handle
                 hyp_struct = hyp;
             else
                 % hyp is a vector passed in for MAP calculation
-                hyp_struct.cov = hyp(1:end-5);
-                hyp_struct.smoothing = hyp(end-4:end-2);
+                hyp_struct.cov = hyp(1:end-4);
+                hyp_struct.smoothing = hyp(end-3:end-2);
                 hyp_struct.noise = hyp(end-1:end);
             end
             obj.fit(X,Y, hyp_struct);

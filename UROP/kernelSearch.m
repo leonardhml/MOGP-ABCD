@@ -54,9 +54,9 @@ for i = 1:length(kernel_set)
 
     disp('Optimising...');
     hyp_opt = model.optimise(X,Y);
-    hyp.cov = hyp_opt(1:end-5);
+    hyp.cov = hyp_opt(1:end-4);
     % hyp.cov = [0.1;0.1;0.1;0.1;0.1;0.1;0.1;0.1;0.1;0.1;0.1;0.1];
-    hyp.smoothing = hyp_opt(end-4:end-2);
+    hyp.smoothing = hyp_opt(end-3:end-2);
     % hyp.smoothing = [0.1;0.1;0.1];
     hyp.noise = hyp_opt(end-1:end);
     % hyp.noise = [0.1;0.1];
