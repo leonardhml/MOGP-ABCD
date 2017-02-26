@@ -35,10 +35,12 @@ Y.y2 = a(2:2:end, 3);
 
 % Set up common (fixed) variables across all models
 g1 = @(x, std1) gauss(x, std1);
-g2 = @(x, std2, g2offset) gauss(x, std2, g2offset);
+g2 = @(x, std2) gauss(x, std2);
 n = 6;
-a = -2;
-b = 2;
+
+% a and b represent the range of input space
+a = 0;
+b = 1;
 
 cov_options.g1 = g1;
 cov_options.g2 = g2;

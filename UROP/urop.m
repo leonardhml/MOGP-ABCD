@@ -51,7 +51,7 @@ g1 = @(x, std1) gauss(x, std1);
 g2 = @(x, std2) gauss(x, std2);
 
 n = 6;
-a = -1;
+a = 0;
 b = 1;
 
 % cov_options is a struct that define the options for the kernel,

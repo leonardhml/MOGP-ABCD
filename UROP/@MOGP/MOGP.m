@@ -150,7 +150,7 @@ classdef MOGP < handle
             end
             obj.fit(X,Y, hyp_struct);
             y = [Y.y1; Y.y2];
-            ll = -((1/2)*y'*obj.alpha) - ((1/2)*log(det(obj.Cov.C))) - ((1/2)*log(2*pi)*length(y));
+            % ll = -((1/2)*y'*obj.alpha) - ((1/2)*log(det(obj.Cov.C))) - ((1/2)*log(2*pi)*length(y));
             ll = logmvnpdf(y', zeros(length(y),1)', obj.Cov.C');
         end
         
