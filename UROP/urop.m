@@ -24,7 +24,7 @@
 % Sample training and test inputs
 %%%
 x1 = rand(100,1);                               % 100 training inputs
-y1 = sin(10*x1) + 0.1*gpml_randn(0.9, 100, 1);  % 100 noisy training targets
+y1 = sin(50*x1) + 0.1*gpml_randn(0.9, 100, 1);  % 100 noisy training targets
 x2 = rand(100,1);                               % 100 training inputs
 y2 = sin(9*x2) + 0.1*gpml_randn(0.9, 100, 1);   % 100 noisy training targets
 xs1 = linspace(0, 1, 20)';                      % 20 test inputs for output 1
@@ -67,24 +67,28 @@ model = MOGP(cov_options);
 
 % Find MAP estimate for hyp
 % Posterior over hyp is a Gaussian distribution
-hyp_opt = model.optimise(X,Y);
+% hyp_opt = model.optimise(X,Y);
+hyp_opt = rand(9,1);
 hyp.cov = hyp_opt(1:end-4);
 hyp.smoothing = hyp_opt(end-3:end-2);
 hyp.noise = hyp_opt(end-1:end);
-% hyp.cov = [-0.1; -0.1;-0.934652;0.405701;2.122141;1.267261;0.664246];
-% hyp.smoothing = [0.1;0.1;0];
-% hyp.noise = [ -0.1;-0.1];
+
+f = @(hyp) -model.logLikelihood(hyp, X,Y);
+[x,fval,exitFlag,output] = simulannealbnd(f, hyp_opt, [-5;-5;-5;-5;-5;-5;-5;-5;-5],[50;50;50;50;50;50;50;50;50]);
+hyp.cov = x(1:end-4);
+hyp.smoothing = x(end-3:end-2);
+hyp.noise = x(end-1:end);
 
 % Fit and predict
 model.fit(X,Y,hyp);
 [mu, s2] = model.predict(xs1, 1);
-
+ 
 % Visualise
-% f = [mu+2*sqrt(diag(s2)); flipdim(mu-2*sqrt(diag(s2)),1)];
-% fill([xs1; flipdim(xs1,1)], f, [7 7 7]/8)
-% hold on; plot(xs1, mu, 'b'); plot(x1, y1, 'r+'); plot (xs1, ys1, 'gx')
+f = [mu+2*sqrt(diag(s2)); flipdim(mu-2*sqrt(diag(s2)),1)];
+fill([xs1; flipdim(xs1,1)], f, [7 7 7]/8)
+hold on; plot(xs1, mu, 'b'); plot(x1, y1, 'r+'); plot (xs1, ys1, 'gx')
 
-fileID = fopen('hyp.txt','a');
-fprintf(fileID,'%f\n', hyp_opt);
-fprintf(fileID,'\n');
-fclose(fileID);
+% fileID = fopen('hyp.txt','a');
+% fprintf(fileID,'%f\n', hyp_opt);
+% fprintf(fileID,'\n');
+% fclose(fileID);
