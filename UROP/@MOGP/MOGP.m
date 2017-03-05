@@ -45,14 +45,29 @@ classdef MOGP < handle
         end
         
         % Optimise for the hyperparameters
-        % Finds the MAP estimate of the hyperparameter posteriors. This
-        % assumes that the posterior is a Gaussian distribution, so the MAP
-        % is simply the mean of each hyperparameter
-        function [hyp] = optimise(obj, X, Y)
-            [models, ~] = obj.mcmcPosterior(X,Y);
-            hyp = mean(models(:,:), 2);
-%             [~,w] = size(models(:,:));
-%             hyp = models(:, ceil(rand * w));
+        % Finds the MLE estimate of the hyperparameter posteriors using
+        % simulated annealing.
+        function [hyp_opt] = optimise(obj, X, Y)
+            % Initialise starting points as mean of priors
+            % Get the lower and upper bound based on the priors over each
+            % hyperparameter
+            prior = Prior(obj.k_components);
+            mu = prior.mu;
+            prior_var = diag(prior.Sigma);
+            
+            lb = mu - 2*prior_var;
+            ub = mu + 2*prior_var;
+            lb(end-3:end-2) = [-15;-15];
+            ub(end-3:end-2) = [15;15];
+            f = @(hyp) -obj.logLikelihood(hyp, X,Y);
+            
+%            mu = rand(length(mu),1);
+            lb = ones(length(mu),1).*-5;
+            ub = ones(length(mu),1).*5;
+            
+            [hyp_opt,fval, exitflag, output] = simulannealbnd(f, mu, lb, ub);
+            fprintf('Optimisation done. fval is %d\n', fval);
+            hyp_opt
         end
         
         % hyp should be a struct containing three fields: cov, smoothing and noise
@@ -120,7 +135,7 @@ classdef MOGP < handle
         % Requires an optimised set of hyperparameters, usually via MAP
         % estimation (see optimise function)
         function [bic] = modelEvidence(obj)
-           bic = -2*obj.logLikelihood(obj.hyp, obj.X, obj.Y) + length(obj.hyp)*log(length(obj.X.x1)+length(obj.X.x2));
+           bic = -2*obj.logLikelihood(obj.hyp, obj.X, obj.Y) + (length(obj.hyp.cov) + length(obj.hyp.smoothing) + length(obj.hyp.noise))*log(length(obj.X.x1)+length(obj.X.x2));
         end
         
         % Samples from the posterior using MCMC
@@ -140,6 +155,7 @@ classdef MOGP < handle
         end
         
         function [ll] = logLikelihood(obj, hyp, X, Y)
+            
             if isstruct(hyp)
                 hyp_struct = hyp;
             else
@@ -152,6 +168,7 @@ classdef MOGP < handle
             y = [Y.y1; Y.y2];
             % ll = -((1/2)*y'*obj.alpha) - ((1/2)*log(det(obj.Cov.C))) - ((1/2)*log(2*pi)*length(y));
             ll = logmvnpdf(y', zeros(length(y),1)', obj.Cov.C');
+            
         end
         
     end

@@ -1,4 +1,4 @@
-function [K,dK] = covProd(cov, hyp, x, z)
+function [K] = covProd(cov, hyp, x, z)
 
 % covProd - compose a covariance function as the product of other covariance
 % functions. This function doesn't actually compute very much on its own, it
@@ -40,7 +40,7 @@ for ii = 1:nc                                  % iteration over factor functions
   f = cov(ii); if iscell(f{:}), f = f{:}; end   % expand cell array if necessary
   if cache
     if nargin>1
-      [Ki{ii},dKi{ii}] = feval(f{:}, hyp(v==ii), x, z); Kii = Ki{ii};    % track
+      Ki{ii} = feval(f{:}, hyp(v==ii), x, z); Kii = Ki{ii};    % track
     else
       Ki{ii} = feval(f{:}, hyp(v==ii), x, z); Kii = Ki{ii};
     end
@@ -49,7 +49,7 @@ for ii = 1:nc                                  % iteration over factor functions
   end
   K = K .* Kii;                                         % accumulate covariances
 end
-dK = @(Q) dirder(Q,Ki,dKi,v,nc,nh,cov,hyp,x,z,cache);   % directional derivative
+%dK = @(Q) dirder(Q,Ki,dKi,v,nc,nh,cov,hyp,x,z,cache);   % directional derivative
 
 function [dhyp,dx] = dirder(Q,Ki,dKi,v,nc,nh,cov,hyp,x,z,cache)
   dhyp = zeros(nh,1); dx = 0;

@@ -18,11 +18,16 @@ for i = 1:resolution:length(raw)
     occ = mean(raw(i:i+resolution-1, 8));
     output = [output; time spd vol occ];
 end
+% 
+% % Normalise output
+% output = normc(output);
+% % Or standardise?
+% output = zscore(output);
 
-% Normalise output
-output = normc(output);
-% Or standardise?
-output = zscore(output); 
+minVal = min(output(:,1));
+maxVal = max(output(:,1));
+norm_time = (output(:,1) - minVal) / ( maxVal - minVal );
+output(:,1) = norm_time;
 
 end
 

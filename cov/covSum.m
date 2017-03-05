@@ -1,4 +1,4 @@
-function [K,dK] = covSum(cov, hyp, x, z)
+function [K] = covSum(cov, hyp, x, z)
 
 % covSum - compose a covariance function as the sum of other covariance
 % functions. This function doesn't actually compute very much on its own, it
@@ -39,13 +39,13 @@ K = 0; dKi = cell(nc,1);                                                % init K
 for ii = 1:nc                                 % iteration over summand functions
   f = cov(ii); if iscell(f{:}), f = f{:}; end   % expand cell array if necessary
   if nargout>1 && cache
-    [Kii,dKi{ii}] = feval(f{:}, hyp(v==ii), x, z);                  % keep track
+    Kii = feval(f{:}, hyp(v==ii), x, z);                  % keep track
   else
     Kii = feval(f{:}, hyp(v==ii), x, z);
   end
   K = K + Kii;                                          % accumulate covariances
 end
-dK = @(Q) dirder(Q,dKi,v,nc,cov,hyp,x,z,cache);         % directional derivative
+% dK = @(Q) dirder(Q,dKi,v,nc,cov,hyp,x,z,cache);         % directional derivative
 
 function [dhyp,dx] = dirder(Q,dKi,v,nc,cov,hyp,x,z,cache)
   dhyp = zeros(size(v,2),1); dx = 0;

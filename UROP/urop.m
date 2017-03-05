@@ -23,17 +23,7 @@
 %%%
 % Sample training and test inputs
 %%%
-x1 = rand(100,1);                               % 100 training inputs
-y1 = sin(50*x1) + 0.1*gpml_randn(0.9, 100, 1);  % 100 noisy training targets
-x2 = rand(100,1);                               % 100 training inputs
-y2 = sin(9*x2) + 0.1*gpml_randn(0.9, 100, 1);   % 100 noisy training targets
-xs1 = linspace(0, 1, 20)';                      % 20 test inputs for output 1
-ys1 = sin(10*xs1) + 0.1*gpml_randn(0.9,20,1);
-
-X.x1 = x1;
-X.x2 = x2;
-Y.y1 = y1;
-Y.y2 = y2;
+[X,Y,xpred,ypred,outputpred] = generateData();
 
 % Base kernels
 % See Prior.m for more details
@@ -43,8 +33,6 @@ base_kernels = {'SE', 'LIN', 'PER', 'RQ'};
 % A sample k
 k.kernel = {'covProd', {'covSEiso', 'covPeriodic'}} ;
 k.components = {'SE', 'PER'};
-%k = {'covSEiso'};
-%hyp.cov = [0.4;0.3];
 
 % sample g1, g2
 g1 = @(x, std1) gauss(x, std1);
@@ -65,28 +53,25 @@ cov_options.a = a;
 cov_options.b = b;
 model = MOGP(cov_options);
 
-% Find MAP estimate for hyp
-% Posterior over hyp is a Gaussian distribution
-% hyp_opt = model.optimise(X,Y);
-hyp_opt = rand(9,1);
+tic 
+
+% Find MLE estimate for hyp
+hyp_opt = model.optimise(X,Y);
 hyp.cov = hyp_opt(1:end-4);
 hyp.smoothing = hyp_opt(end-3:end-2);
 hyp.noise = hyp_opt(end-1:end);
 
-f = @(hyp) -model.logLikelihood(hyp, X,Y);
-[x,fval,exitFlag,output] = simulannealbnd(f, hyp_opt, [-5;-5;-5;-5;-5;-5;-5;-5;-5],[50;50;50;50;50;50;50;50;50]);
-hyp.cov = x(1:end-4);
-hyp.smoothing = x(end-3:end-2);
-hyp.noise = x(end-1:end);
-
 % Fit and predict
 model.fit(X,Y,hyp);
-[mu, s2] = model.predict(xs1, 1);
- 
+[mu, s2] = model.predict(xpred, 1);
+fprintf('Model Evidence is %d.\n', model.modelEvidence);
+
+toc
+
 % Visualise
 f = [mu+2*sqrt(diag(s2)); flipdim(mu-2*sqrt(diag(s2)),1)];
-fill([xs1; flipdim(xs1,1)], f, [7 7 7]/8)
-hold on; plot(xs1, mu, 'b'); plot(x1, y1, 'r+'); plot (xs1, ys1, 'gx')
+fill([xpred; flipdim(xpred,1)], f, [7 7 7]/8)
+hold on; plot(xpred, mu, 'b'); plot(X.x1, Y.y1, 'r+');
 
 % fileID = fopen('hyp.txt','a');
 % fprintf(fileID,'%f\n', hyp_opt);
