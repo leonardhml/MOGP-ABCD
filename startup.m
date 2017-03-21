@@ -19,9 +19,9 @@ addpath([mydir,'inf'])
 addpath([mydir,'lik'])
 addpath([mydir,'mean'])
 addpath([mydir,'prior'])
-addpath([mydir,'util'])
+addpath([mydir,'results'])
+addpath([mydir,genpath('util')])
 addpath([mydir,'UROP'])
-addpath([mydir,'gwmcmc-master'])
 addpath([mydir,'data'])
 
 clear me mydir

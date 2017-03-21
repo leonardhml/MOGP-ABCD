@@ -28,21 +28,17 @@ elseif (r == 1) && (A <= 0)
   Ahat = eps;
   return
 end
-
 % symmetrize A into B
-B = (A + A')/2;
-
+B = (A/2 + A'/2);
 % Compute the symmetric polar factor of B. Call it H.
 % Clearly H is itself SPD.
 [U,Sigma,V] = svd(B);
 H = V*Sigma*V';
-
 % get Ahat in the above formula
 Ahat = (B+H)/2;
 
 % ensure symmetry
 Ahat = (Ahat/2 + Ahat'/2);
-
 % test that Ahat is in fact PD. if it is not so, then tweak it just a bit.
 p = 1;
 k = 0;
@@ -57,7 +53,6 @@ while p ~= 0
     Ahat = Ahat + (-mineig*k.^2 + eps(mineig))*eye(size(A));
   end
 end
-
 
 
 

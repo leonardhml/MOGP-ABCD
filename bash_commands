@@ -1,0 +1,13 @@
+get list of all files recursively
+ls -R1 > filenames.txt
+
+find and replace files recursively
+find . -iname "*dbg*" -exec rename _dbg.txt .txt '{}' \;
+cat filepaths.txt | while read line; do pathorig=${line}; pathnew=${line::${#line}-2}2${line:${#line}-2:2};mv ${pathorig} ${pathnew};done ;
+
+recursively replace text in files
+cat filenames.txt | while read line; do 
+neww=${line}2; 
+oldw=${line}; 
+find . -type f -exec sed -i "s/\b${oldw}\b/${neww}/Ig" {} \;; done
+

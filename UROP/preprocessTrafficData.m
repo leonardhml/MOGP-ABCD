@@ -1,4 +1,4 @@
-function [ output ] = preprocessTrafficData(csv, r, c, resolution)
+function [ output ] = preprocessTrafficData(csv, r, c, resolution, fraction)
 % r: row number to start with (0-indexed)
 % c: col number to start with (0-indexed)
 % resolution: Set how finely detailed the output will be. If 1, resolution
@@ -6,7 +6,7 @@ function [ output ] = preprocessTrafficData(csv, r, c, resolution)
 raw = csvread(csv, r, c);
 [l, w] = size(raw);
 output = [];
-for i = 1:resolution:length(raw)
+for i = 1:resolution:length(raw)/fraction
     day = raw(i,1);
     mon = raw(i,2);
     hh = raw(i,3);
@@ -20,9 +20,9 @@ for i = 1:resolution:length(raw)
 end
 % 
 % % Normalise output
-% output = normc(output);
+% output(:,2:4) = normc(output(:,2:4));
 % % Or standardise?
-% output = zscore(output);
+output(:,2:4) = zscore(output(:,2:4));
 
 minVal = min(output(:,1));
 maxVal = max(output(:,1));
@@ -30,4 +30,3 @@ norm_time = (output(:,1) - minVal) / ( maxVal - minVal );
 output(:,1) = norm_time;
 
 end
-

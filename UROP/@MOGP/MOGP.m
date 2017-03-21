@@ -46,27 +46,29 @@ classdef MOGP < handle
         
         % Optimise for the hyperparameters
         % Finds the MLE estimate of the hyperparameter posteriors using
-        % simulated annealing.
-        function [hyp_opt] = optimise(obj, X, Y)
+        % simulated annealing / PSO.
+        function [hyp_opt, bestfval] = optimise(obj, X, Y)
             % Initialise starting points as mean of priors
             % Get the lower and upper bound based on the priors over each
             % hyperparameter
             prior = Prior(obj.k_components);
-            mu = prior.mu;
-            prior_var = diag(prior.Sigma);
             
-            lb = mu - 2*prior_var;
-            ub = mu + 2*prior_var;
-            lb(end-3:end-2) = [-15;-15];
-            ub(end-3:end-2) = [15;15];
             f = @(hyp) -obj.logLikelihood(hyp, X,Y);
+            mu = prior.mu;
+            lb = prior.lb;
+            ub = prior.ub;
             
-%            mu = rand(length(mu),1);
-            lb = ones(length(mu),1).*-5;
-            ub = ones(length(mu),1).*5;
-            
-            [hyp_opt,fval, exitflag, output] = simulannealbnd(f, mu, lb, ub);
-            fprintf('Optimisation done. fval is %d\n', fval);
+            % [hyp_opt,fval, exitflag, output] = simulannealbnd2(f, mu, lb, ub);
+            userOptions = buildOptions('final', 1, [], [], [], 0);
+            bestfval = inf;
+            for i = 1:5
+                [hypp,fval, ~] = particleswarm2(f, length(mu), lb, ub, userOptions);
+                if fval < bestfval
+                    bestfval = fval;
+                    hyp_opt = hypp;
+                end
+            end
+            fprintf('Optimisation done. fval is %d\n', bestfval);
             hyp_opt
         end
         
@@ -92,8 +94,11 @@ classdef MOGP < handle
                 alpha = L\(L'\[Y.y1;Y.y2]);
             else                        % Not PD
                 disp('Warning: Cross covariance matrix is not PD');
-                alpha = Cov.C\[Y.y1;Y.y2];
+                Cov.C = nearestSPD(Cov.C);
+                [L, p] = chol(Cov.C);
+                alpha = L\(L'\[Y.y1;Y.y2]);
             end
+            obj.Cov = Cov;
             obj.alpha = alpha;
 
             obj.X = X;
@@ -159,10 +164,10 @@ classdef MOGP < handle
             if isstruct(hyp)
                 hyp_struct = hyp;
             else
-                % hyp is a vector passed in for MAP calculation
+                % hyp is a vector passed in for MLE calculation
                 hyp_struct.cov = hyp(1:end-4);
-                hyp_struct.smoothing = hyp(end-3:end-2);
-                hyp_struct.noise = hyp(end-1:end);
+                hyp_struct.noise = hyp(end-3:end-2);
+                hyp_struct.smoothing = hyp(end-1:end);
             end
             obj.fit(X,Y, hyp_struct);
             y = [Y.y1; Y.y2];

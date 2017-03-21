@@ -64,7 +64,6 @@ C(n_samples,n_samples) = 1;
     samples2 = [a - 2*g2.hyp : h2 : b + 2*g2.hyp]';
         % Build k
         K = feval(k{:}, hyp.cov, samples1, samples2);
-
 %         % Evaluate covariance at two points
 %         function [v] = eval(x,y)  
 %             % Build g's

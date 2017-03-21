@@ -1,0 +1,38 @@
+<productinfo>
+
+<matlabrelease>14</matlabrelease>
+<name>Global Optimization</name>
+<type>toolbox</type>
+<icon>$toolbox/matlab/icons/matlabicon.gif</icon>
+<help_location>$docroot/toolbox/gads</help_location>
+
+<list>
+
+<listitem>
+<label>Optimization Tool (optimtool)</label>
+<callback>optimtool('ga2')</callback>
+<icon>$toolbox/matlab/icons/figureicon.gif</icon>
+</listitem>
+
+<listitem>
+<label>Help</label>
+<callback>doc gads/</callback>
+<icon>$toolbox/matlab/icons/book_mat.gif</icon>
+</listitem>
+
+<listitem>
+<label>Demos</label> 
+<callback>demo toolbox 'global optimization'</callback> 
+<icon>$toolbox/matlab/icons/demoicon.gif</icon> 
+</listitem>
+
+<listitem>
+<label>Product Page (Web)</label>
+<callback>web http://www.mathworks.com/products/global-optimization/ -browser;</callback>
+<icon>$toolbox/matlab/icons/webicon.gif</icon>
+</listitem>
+
+</list>
+
+</productinfo>
+

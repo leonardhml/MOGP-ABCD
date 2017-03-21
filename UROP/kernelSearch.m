@@ -51,37 +51,69 @@ cov_options.b = b;
 % end
 
 % Greedy kernel search procedure
-depth = 2;
-kernel_set = expandKernel();
-bestForDepth.k = {};
-bestForDepth.bic = inf;
+depth = 1;
+maxDepth = 2;
+bestForDepth = struct('bic', inf, 'k', []);
+for i = 1:maxDepth
+    bestForDepth(i).bic = inf;
+    bestForDepth(i).k = [];
+end
 results = {};
-while (depth > 0)
-    for i = 1:length(kernel_set)
+
+kernel_set = expandKernel();
+from = 1;
+to = from + length(kernel_set) - 1;
+while (depth <= maxDepth)
+    fprintf('Exploring depth: %d\n', depth);
+    parfor i = from:to
+        pause(2);
         fprintf('Kernel: %d\n', i);
-        cov_options.k = kernel_set(i);
+        
+        cov_options = [];
+        cov_options.g1 = g1;
+        cov_options.g2 = g2;
+        cov_options.n = n;
+        cov_options.a = a;
+        cov_options.b = b;
+        cov_options.k = kernel_set(i - from + 1);
+        
         model = MOGP(cov_options);
 
-        disp('Optimising...');
-        hyp_opt = model.optimise(X,Y);
+        hyp = [];
+        [hyp_opt, fval] = model.optimise(X,Y);
         hyp.cov = hyp_opt(1:end-4);
         hyp.smoothing = hyp_opt(end-3:end-2);
         hyp.noise = hyp_opt(end-1:end);
 
         model.fit(X,Y, hyp);
         bic = model.modelEvidence();
-        results(end+1).bic = bic;
-        results(end).k = kernel_set(i);
-        results(end).hyp = hyp_opt;
+        results(i).bic = bic;
+        results(i).fval = fval;
+        results(i).k = kernel_set(i - from + 1);
+        results(i).hyp = hyp_opt;
+        results(i).depth = depth;
         
-        if bic < bestForDepth.bic
-            bestForDepth.k = kernel_set(i);
-            bestForDepth.bic = bic;
+        pause(2);
+        fprintf('Optimisation done for Kernel: %d\n', i);
+    end
+    
+    % Find best kernel for a particular depth
+    for i = from:to
+        if results(i).bic < bestForDepth(depth).bic
+            bestForDepth(depth).k = results(i).k;
+            bestForDepth(depth).bic = results(i).bic;
         end
     end
     
-    depth = depth - 1;
-    kernel_set = expandKernel(bestForDepth.k);
+    fprintf('Done exploring depth: %d\n', depth);
     
-save('results.mat', 'results');
+    kernel_set = expandKernel(bestForDepth(depth).k);
+    from = to + 1;
+    to = from + length(kernel_set) - 1;
+    depth = depth + 1;
+    
+   
+    fprintf('Saving results\n'); 
+    save('results.mat', 'results');
 end
+fprintf('Search complete\n');

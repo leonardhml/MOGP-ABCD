@@ -42,6 +42,20 @@ fprintf('Model Evidence is %d.\n', model.modelEvidence);
 % Visualise
 f = [mu+2*sqrt(diag(s2)); flipdim(mu-2*sqrt(diag(s2)),1)];
 fill([xpred; flipdim(xpred,1)], f, [7 7 7]/8)
-hold on; plot(xpred, mu, 'b'); plot(X.x1, Y.y1, 'r+');
+hold on; plot(xpred, mu, 'b'); plot(X.x1, Y.y1, 'r+'); title(buildKernelDescription(result.k)); xlabel(['bic = ' num2str(result.bic)]); figure
+end
+
+function [s] = buildKernelDescription(k)
+components = k.components;
+operators = k.operators;
+s = char(components(end));
+for i = length(operators):-1:1
+    if strcmp(components(i),'covSum')
+        operator = '+';
+    else
+        operator = 'x';
+    end
+    s = ['(' char(components(i)) operator s ')'];
+end
 end
 

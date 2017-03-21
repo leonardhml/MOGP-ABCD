@@ -31,8 +31,8 @@ kernel_set = {'covSEiso', 'covLINscaleshift', 'covPeriodic', 'covRQiso'} ;
 base_kernels = {'SE', 'LIN', 'PER', 'RQ'}; 
 
 % A sample k
-k.kernel = {'covProd', {'covSEiso', 'covPeriodic'}} ;
-k.components = {'SE', 'PER'};
+k.kernel = {'covSum', { 'covRQiso', {'covProd', {'covSEiso', 'covPeriodic'}}}} ;
+k.components = {'RQ','SE', 'PER'};
 
 % sample g1, g2
 g1 = @(x, std1) gauss(x, std1);
@@ -52,11 +52,9 @@ cov_options.n = n;
 cov_options.a = a;
 cov_options.b = b;
 model = MOGP(cov_options);
-
-tic 
-
 % Find MLE estimate for hyp
-hyp_opt = model.optimise(X,Y);
+[hyp_opt, ~] = model.optimise(X,Y);
+% hyp_opt = [-5.0000  ;  3.1652 ;  -5.0000 ;  -0.1969 ;  -2.4453 ;  -0.0102 ;   0.0163 ; -1.0231  ; -1.0219];
 hyp.cov = hyp_opt(1:end-4);
 hyp.smoothing = hyp_opt(end-3:end-2);
 hyp.noise = hyp_opt(end-1:end);
@@ -65,8 +63,6 @@ hyp.noise = hyp_opt(end-1:end);
 model.fit(X,Y,hyp);
 [mu, s2] = model.predict(xpred, 1);
 fprintf('Model Evidence is %d.\n', model.modelEvidence);
-
-toc
 
 % Visualise
 f = [mu+2*sqrt(diag(s2)); flipdim(mu-2*sqrt(diag(s2)),1)];

@@ -40,11 +40,27 @@ function [ Cov, cov_eval] = buildCrossCovarianceMatrix(X,Y,cov_options)
     C21 = cov_eval(k, hyp, g2, g1, x2, x1);
     C22 = cov_eval(k, hyp, g2, g2, x2, x2) + (exp(2*hyp.noise(2)) * eye(length(x2)));
     C = [C11 C12; C21 C22];
-    Cov.C = nearestSPD(C);
+    Cov.C = C/2 + C'/2;
     Cov.C11 = C11;
     Cov.C12 = C12;
     Cov.C21 = C21;
     Cov.C22 = C22;
     
+    [R, p] = chol(Cov.C);
+    if p ==0 
+        max(max(Cov.C))
+        min(min(Cov.C))
+        cov_options.hyp
+    else 
+        max(max(Cov.C))
+        min(min(Cov.C))
+        cov_options.hyp
+    end
+%     if (isPSD(Cov.C))
+%         
+%     else
+%         error('Covariance matrix is not PSD!!!');
+%     end
+%     
 end
 

@@ -13,6 +13,8 @@ classdef Prior < handle
         k_components
         mu
         Sigma
+        lb
+        ub
     end
     
     methods
@@ -24,27 +26,37 @@ classdef Prior < handle
         function buildPrior(obj, addNoise, addSmoothing)
             mu = [];
             Sigma_diag = [];
+            lb = [];
+            ub = [];
             
             for i = 1: length(obj.k_components)
-                [mu_new, var_new] = BaseKernels.getPriorFor(obj.k_components(i));
+                [mu_new, var_new, lb_new, ub_new] = BaseKernels.getPriorFor(obj.k_components(i));
                 mu = [mu; mu_new];
                 Sigma_diag = [Sigma_diag; var_new]; 
+                lb = [lb; lb_new];
+                ub = [ub; ub_new];
             end
             
             if addNoise == 1
-                [mu_new, var_new] = BaseKernels.getPriorFor('noise');
+                [mu_new, var_new, lb_new, ub_new] = BaseKernels.getPriorFor('noise');
                 mu = [mu; mu_new];
                 Sigma_diag = [Sigma_diag; var_new]; 
+                lb = [lb; lb_new];
+                ub = [ub; ub_new];
             end
             
             if addSmoothing == 1
-                [mu_new, var_new] = BaseKernels.getPriorFor('smoothing');
+                [mu_new, var_new, lb_new, ub_new] = BaseKernels.getPriorFor('smoothing');
                 mu = [mu; mu_new];
                 Sigma_diag = [Sigma_diag; var_new]; 
+                lb = [lb; lb_new];
+                ub = [ub; ub_new];
             end
             
             obj.mu = mu;
             obj.Sigma = diag(Sigma_diag);
+            obj.lb = lb;
+            obj.ub = ub;
         end
         
         function [lp] = logPrior(obj, hyp)
